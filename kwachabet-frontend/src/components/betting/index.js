@@ -15,6 +15,7 @@ const MARKET_TABS = [
   { id: 'spreads',      label: 'Handicap',    short: 'HCP'   },
   { id: 'htft',         label: 'HT/FT',       short: 'HT/FT' },
   { id: 'correct_score',label: 'Score',       short: 'Score' },
+  { id: 'double_chance', label: 'Double Chance', short: 'DC'    },
 ];
 
 // ── OddsButton ────────────────────────────────────────────────────────────────
@@ -272,6 +273,40 @@ export function EventCard({ event }: { event: any }) {
           </div>
         </div>
       )}
+
+
+            {/* Double Chance */}
+            {activeTab === 'double_chance' && (
+              <div>
+                <p className="text-xs text-gray-500 mb-2 font-medium">Double Chance</p>
+                <div className="flex gap-2">
+                  {byType['double_chance']?.find(m => m.outcome === '1X') && (
+                    <OddsButton
+                      market={byType['double_chance'].find(m => m.outcome === '1X')}
+                      event={event}
+                      label="1X (Home or Draw)"
+                    />
+                  )}
+                  {byType['double_chance']?.find(m => m.outcome === 'X2') && (
+                    <OddsButton
+                      market={byType['double_chance'].find(m => m.outcome === 'X2')}
+                      event={event}
+                      label="X2 (Draw or Away)"
+                    />
+                  )}
+                  {byType['double_chance']?.find(m => m.outcome === '12') && (
+                    <OddsButton
+                      market={byType['double_chance'].find(m => m.outcome === '12')}
+                      event={event}
+                      label="12 (Home or Away)"
+                    />
+                  )}
+                </div>
+                <div className="mt-2 bg-dark-surface rounded-lg p-2">
+                  <p className="text-xs text-gray-600">Double Chance covers 2 of 3 possible match outcomes. Lower odds, higher chance of winning.</p>
+                </div>
+              </div>
+            )}
 
       {/* No markets fallback */}
       {availableTabs.length === 0 && (
