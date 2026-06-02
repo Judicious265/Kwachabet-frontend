@@ -19,7 +19,7 @@ const MARKET_TABS = [
 ];
 
 // ── OddsButton ────────────────────────────────────────────────────────────────
-function OddsButton({ market, event, label, compact = false }: any) {
+function OddsButton({ market, event, label, compact = false }) {
   const { addSelection, isSelected } = useBetSlipStore();
   const selected = isSelected(market.id, market.outcome);
 
@@ -53,10 +53,10 @@ function OddsButton({ market, event, label, compact = false }: any) {
 }
 
 // ── EventCard ────────────────────────────────────────────────────────────────
-export function EventCard({ event }: { event: any }) {
+export function EventCard({ event }) {
   const [activeTab, setActiveTab] = useState('h2h');
   const [showAllScores, setShowAllScores] = useState(false);
-  const markets: any[] = event.markets || [];
+  const markets[] = event.markets || [];
   const isLive = event.status === 'live';
 
   // Group markets by type
@@ -179,7 +179,7 @@ export function EventCard({ event }: { event: any }) {
                   <div className="flex flex-wrap gap-2">
                     {totals
                       .filter(m => !['Over 2.5','Under 2.5','Over 1.5','Under 1.5'].includes(m.outcome))
-                      .map((m: any) => (
+                      .map((m) => (
                         <div key={m.id} className="flex-1 min-w-[80px] max-w-[120px]">
                           <OddsButton market={m} event={event} label={m.outcome} compact />
                         </div>
@@ -205,7 +205,7 @@ export function EventCard({ event }: { event: any }) {
               <div>
                 <p className="text-xs text-gray-500 mb-2 font-medium">Asian Handicap</p>
                 <div className="flex flex-wrap gap-2">
-                  {spreads.map((m: any) => (
+                  {spreads.map((m) => (
                     <div key={m.id} className="flex-1 min-w-[100px]">
                       <OddsButton market={m} event={event} label={m.outcome} compact />
                     </div>
@@ -219,12 +219,12 @@ export function EventCard({ event }: { event: any }) {
               <div>
                 <p className="text-xs text-gray-500 mb-2 font-medium">Half Time / Full Time</p>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {htft.map((m: any) => {
+                  {htft.map((m) => {
                     const parts = m.outcome.split('/');
                     const htPart = parts[0]?.trim();
                     const ftPart = parts[1]?.trim();
                     // Shorten team names for display
-                    const shorten = (name: string) => {
+                    const shorten = (name) => {
                       if (name === 'Draw') return 'Draw';
                       if (name === event.home_team) return 'Home';
                       if (name === event.away_team) return 'Away';
@@ -249,7 +249,7 @@ export function EventCard({ event }: { event: any }) {
               <div>
                 <p className="text-xs text-gray-500 mb-2 font-medium">Correct Score</p>
                 <div className="grid grid-cols-4 gap-1.5">
-                  {visibleScores.map((m: any) => (
+                  {visibleScores.map((m) => (
                     <OddsButton
                       key={m.id}
                       market={m}
@@ -332,7 +332,7 @@ export function BetSlip() {
   const { isAuthenticated } = useAuthStore();
   const { balance, bonusBalance, available, setWallet } = useWalletStore();
   const [loading, setLoading] = useState(false);
-  const [placed, setPlaced] = useState<any>(null);
+  const [placed, setPlaced] = useState(null);
 
   const totalOdds = getTotalOdds();
   const potWin    = getPotentialWin();
@@ -352,7 +352,7 @@ export function BetSlip() {
       setPlaced(res.data.ticket);
       clearSlip();
       walletAPI.getBalance().then(r => setWallet(r.data));
-    } catch (err: any) {
+    } catch (err) {
       toast.error(err.message);
     } finally {
       setLoading(false);
