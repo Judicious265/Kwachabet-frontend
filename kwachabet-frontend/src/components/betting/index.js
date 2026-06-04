@@ -7,19 +7,17 @@ import { fmt } from '../../utils/helpers';
 import { Spinner } from '../common';
 import toast from 'react-hot-toast';
 
-// ── Market tab definitions ────────────────────────────────────────────────────
 const MARKET_TABS = [
-  { id: 'h2h',          label: '1X2',         short: '1X2'   },
-  { id: 'totals',       label: 'Over/Under',  short: 'O/U'   },
-  { id: 'btts',         label: 'BTTS',        short: 'BTTS'  },
-  { id: 'spreads',      label: 'Handicap',    short: 'HCP'   },
-  { id: 'htft',         label: 'HT/FT',       short: 'HT/FT' },
-  { id: 'correct_score',label: 'Score',       short: 'Score' },
-  { id: 'double_chance', label: 'Double Chance', short: 'DC'    },
+  { id: 'h2h',          label: '1X2',          short: '1X2'   },
+  { id: 'totals',       label: 'Over/Under',   short: 'O/U'   },
+  { id: 'btts',         label: 'BTTS',         short: 'BTTS'  },
+  { id: 'double_chance',label: 'Double Chance', short: 'DC'    },
+  { id: 'spreads',      label: 'Handicap',     short: 'HCP'   },
+  { id: 'htft',         label: 'HT/FT',        short: 'HT/FT' },
+  { id: 'correct_score',label: 'Score',        short: 'Score' },
 ];
 
-// ── OddsButton ────────────────────────────────────────────────────────────────
-function OddsButton({ market, event, label, compact = false }) {
+function OddsButton({ market, event, label, compact }) {
   const { addSelection, isSelected } = useBetSlipStore();
   const selected = isSelected(market.id, market.outcome);
 
@@ -32,73 +30,67 @@ function OddsButton({ market, event, label, compact = false }) {
       odds:        parseFloat(market.odds),
       home_team:   event.home_team,
       away_team:   event.away_team,
-      event_label: `${event.home_team} vs ${event.away_team}`,
-      label:       `${label} — ${event.home_team} vs ${event.away_team}`,
+      event_label: event.home_team + ' vs ' + event.away_team,
+      label:       label + ' — ' + event.home_team + ' vs ' + event.away_team,
     });
   }
 
   return (
     <button
       onClick={handleClick}
-      className={`odds-btn ${selected ? 'selected' : ''} ${compact ? 'py-1.5' : 'py-2.5'}`}
+      className={'odds-btn ' + (selected ? 'selected' : '') + (compact ? ' py-1.5' : ' py-2.5')}
     >
-      <span className={`text-gray-500 truncate w-full text-center ${compact ? 'text-xs' : 'text-xs'} leading-tight`}>
+      <span className={'text-gray-500 truncate w-full text-center text-xs leading-tight'}>
         {label}
       </span>
-      <span className={`font-bold ${selected ? 'text-brand' : 'text-white'} ${compact ? 'text-xs' : 'text-sm'}`}>
+      <span className={'font-bold ' + (selected ? 'text-brand' : 'text-white') + (compact ? ' text-xs' : ' text-sm')}>
         {fmt.odds(market.odds)}
       </span>
     </button>
   );
 }
 
-// ── EventCard ────────────────────────────────────────────────────────────────
 export function EventCard({ event }) {
   const [activeTab, setActiveTab] = useState('h2h');
   const [showAllScores, setShowAllScores] = useState(false);
-  const markets[] = event.markets || [];
+  const markets = event.markets || [];
   const isLive = event.status === 'live';
 
-  // Group markets by type
-  const byType: Record<string, any[]> = {};
-  markets.forEach(m => {
+  const byType = {};
+  markets.forEach(function(m) {
     if (!byType[m.market_type]) byType[m.market_type] = [];
     byType[m.market_type].push(m);
   });
 
-  // Which tabs have data
-  const availableTabs = MARKET_TABS.filter(t => byType[t.id]?.length > 0);
+  const availableTabs = MARKET_TABS.filter(function(t) {
+    return byType[t.id] && byType[t.id].length > 0;
+  });
 
-  // H2H markets
-  const h2hHome = byType['h2h']?.find(m => m.outcome === event.home_team);
-  const h2hDraw = byType['h2h']?.find(m => m.outcome === 'Draw');
-  const h2hAway = byType['h2h']?.find(m => m.outcome === event.away_team);
+  const h2hHome = byType['h2h'] && byType['h2h'].find(function(m) { return m.outcome === event.home_team; });
+  const h2hDraw = byType['h2h'] && byType['h2h'].find(function(m) { return m.outcome === 'Draw'; });
+  const h2hAway = byType['h2h'] && byType['h2h'].find(function(m) { return m.outcome === event.away_team; });
 
-  // Over/Under markets
-  const totals = byType['totals'] || [];
-  const over25  = totals.find(m => m.outcome === 'Over 2.5');
-  const under25 = totals.find(m => m.outcome === 'Under 2.5');
-  const over15  = totals.find(m => m.outcome === 'Over 1.5');
-  const under15 = totals.find(m => m.outcome === 'Under 1.5');
+  const totals   = byType['totals']  || [];
+  const over25   = totals.find(function(m) { return m.outcome === 'Over 2.5'; });
+  const under25  = totals.find(function(m) { return m.outcome === 'Under 2.5'; });
+  const over15   = totals.find(function(m) { return m.outcome === 'Over 1.5'; });
+  const under15  = totals.find(function(m) { return m.outcome === 'Under 1.5'; });
 
-  // BTTS
-  const bttsYes = byType['btts']?.find(m => m.outcome === 'Yes');
-  const bttsNo  = byType['btts']?.find(m => m.outcome === 'No');
+  const bttsYes  = byType['btts'] && byType['btts'].find(function(m) { return m.outcome === 'Yes'; });
+  const bttsNo   = byType['btts'] && byType['btts'].find(function(m) { return m.outcome === 'No'; });
 
-  // Handicap
-  const spreads = byType['spreads'] || [];
+  const dc1X     = byType['double_chance'] && byType['double_chance'].find(function(m) { return m.outcome === '1X'; });
+  const dcX2     = byType['double_chance'] && byType['double_chance'].find(function(m) { return m.outcome === 'X2'; });
+  const dc12     = byType['double_chance'] && byType['double_chance'].find(function(m) { return m.outcome === '12'; });
 
-  // HT/FT
-  const htft = byType['htft'] || [];
-
-  // Correct Score
-  const scores = byType['correct_score'] || [];
+  const spreads  = byType['spreads']       || [];
+  const htft     = byType['htft']          || [];
+  const scores   = byType['correct_score'] || [];
   const visibleScores = showAllScores ? scores : scores.slice(0, 8);
 
   return (
-    <div className={`card overflow-hidden hover:border-gray-600 transition-all ${isLive ? 'border-red-900/50' : ''}`}>
+    <div className={'card overflow-hidden hover:border-gray-600 transition-all ' + (isLive ? 'border-red-900/50' : '')}>
 
-      {/* Match header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-dark-border">
         <div className="flex items-center gap-2 min-w-0">
           {isLive ? (
@@ -117,42 +109,40 @@ export function EventCard({ event }) {
         )}
       </div>
 
-      {/* Teams */}
       <div className="px-4 py-2.5">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0 mr-4">
             <p className="text-sm font-semibold text-white truncate">{event.home_team}</p>
             <p className="text-sm font-semibold text-gray-400 truncate mt-0.5">{event.away_team}</p>
           </div>
-          {/* Markets count badge */}
           <div className="text-xs text-gray-600 flex-shrink-0 text-right">
             <span className="text-brand font-medium">{availableTabs.length}</span> markets
           </div>
         </div>
       </div>
 
-      {/* Market tabs - scrollable */}
       {availableTabs.length > 0 && (
         <div className="border-t border-dark-border">
-          <div className="flex overflow-x-auto scrollbar-hide border-b border-dark-border">
-            {availableTabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-brand text-brand bg-brand/5'
-                    : 'border-transparent text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                {tab.short}
-              </button>
-            ))}
+          <div className="flex overflow-x-auto border-b border-dark-border">
+            {availableTabs.map(function(tab) {
+              return (
+                <button
+                  key={tab.id}
+                  onClick={function() { setActiveTab(tab.id); }}
+                  className={'px-3 py-2 text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 border-b-2 ' + (
+                    activeTab === tab.id
+                      ? 'border-brand text-brand bg-brand/5'
+                      : 'border-transparent text-gray-500 hover:text-gray-300'
+                  )}
+                >
+                  {tab.short}
+                </button>
+              );
+            })}
           </div>
 
           <div className="p-3">
 
-            {/* 1X2 - Match Result */}
             {activeTab === 'h2h' && (
               <div className="flex gap-2">
                 {h2hHome && <OddsButton market={h2hHome} event={event} label="1" />}
@@ -164,7 +154,6 @@ export function EventCard({ event }) {
               </div>
             )}
 
-            {/* Over/Under */}
             {activeTab === 'totals' && (
               <div className="space-y-2">
                 <div className="flex gap-2">
@@ -175,21 +164,24 @@ export function EventCard({ event }) {
                   {over15  && <OddsButton market={over15}  event={event} label="Over 1.5"  />}
                   {under15 && <OddsButton market={under15} event={event} label="Under 1.5" />}
                 </div>
-                {totals.filter(m => !['Over 2.5','Under 2.5','Over 1.5','Under 1.5'].includes(m.outcome)).length > 0 && (
+                {totals.filter(function(m) {
+                  return !['Over 2.5','Under 2.5','Over 1.5','Under 1.5'].includes(m.outcome);
+                }).length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {totals
-                      .filter(m => !['Over 2.5','Under 2.5','Over 1.5','Under 1.5'].includes(m.outcome))
-                      .map((m) => (
+                    {totals.filter(function(m) {
+                      return !['Over 2.5','Under 2.5','Over 1.5','Under 1.5'].includes(m.outcome);
+                    }).map(function(m) {
+                      return (
                         <div key={m.id} className="flex-1 min-w-[80px] max-w-[120px]">
                           <OddsButton market={m} event={event} label={m.outcome} compact />
                         </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
             )}
 
-            {/* BTTS */}
             {activeTab === 'btts' && (
               <div>
                 <p className="text-xs text-gray-500 mb-2 font-medium">Both Teams to Score</p>
@@ -200,42 +192,55 @@ export function EventCard({ event }) {
               </div>
             )}
 
-            {/* Asian Handicap */}
-            {activeTab === 'spreads' && (
+            {activeTab === 'double_chance' && (
               <div>
-                <p className="text-xs text-gray-500 mb-2 font-medium">Asian Handicap</p>
-                <div className="flex flex-wrap gap-2">
-                  {spreads.map((m) => (
-                    <div key={m.id} className="flex-1 min-w-[100px]">
-                      <OddsButton market={m} event={event} label={m.outcome} compact />
-                    </div>
-                  ))}
+                <p className="text-xs text-gray-500 mb-2 font-medium">Double Chance</p>
+                <div className="flex gap-2">
+                  {dc1X && <OddsButton market={dc1X} event={event} label="1X" />}
+                  {dcX2 && <OddsButton market={dcX2} event={event} label="X2" />}
+                  {dc12 && <OddsButton market={dc12} event={event} label="12" />}
+                </div>
+                <div className="mt-2 bg-dark-surface rounded-lg p-2">
+                  <p className="text-xs text-gray-600">1X = Home or Draw · X2 = Draw or Away · 12 = Home or Away</p>
                 </div>
               </div>
             )}
 
-            {/* HT/FT */}
+            {activeTab === 'spreads' && (
+              <div>
+                <p className="text-xs text-gray-500 mb-2 font-medium">Asian Handicap</p>
+                <div className="flex flex-wrap gap-2">
+                  {spreads.map(function(m) {
+                    return (
+                      <div key={m.id} className="flex-1 min-w-[100px]">
+                        <OddsButton market={m} event={event} label={m.outcome} compact />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {activeTab === 'htft' && (
               <div>
                 <p className="text-xs text-gray-500 mb-2 font-medium">Half Time / Full Time</p>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {htft.map((m) => {
-                    const parts = m.outcome.split('/');
-                    const htPart = parts[0]?.trim();
-                    const ftPart = parts[1]?.trim();
-                    // Shorten team names for display
-                    const shorten = (name) => {
+                  {htft.map(function(m) {
+                    var parts  = m.outcome.split('/');
+                    var htPart = parts[0] ? parts[0].trim() : '';
+                    var ftPart = parts[1] ? parts[1].trim() : '';
+                    function shorten(name) {
                       if (name === 'Draw') return 'Draw';
                       if (name === event.home_team) return 'Home';
                       if (name === event.away_team) return 'Away';
                       return name;
-                    };
+                    }
                     return (
                       <OddsButton
                         key={m.id}
                         market={m}
                         event={event}
-                        label={`${shorten(htPart)}/${shorten(ftPart)}`}
+                        label={shorten(htPart) + '/' + shorten(ftPart)}
                         compact
                       />
                     );
@@ -244,27 +249,28 @@ export function EventCard({ event }) {
               </div>
             )}
 
-            {/* Correct Score */}
             {activeTab === 'correct_score' && (
               <div>
                 <p className="text-xs text-gray-500 mb-2 font-medium">Correct Score</p>
                 <div className="grid grid-cols-4 gap-1.5">
-                  {visibleScores.map((m) => (
-                    <OddsButton
-                      key={m.id}
-                      market={m}
-                      event={event}
-                      label={m.outcome}
-                      compact
-                    />
-                  ))}
+                  {visibleScores.map(function(m) {
+                    return (
+                      <OddsButton
+                        key={m.id}
+                        market={m}
+                        event={event}
+                        label={m.outcome}
+                        compact
+                      />
+                    );
+                  })}
                 </div>
                 {scores.length > 8 && (
                   <button
-                    onClick={() => setShowAllScores(!showAllScores)}
+                    onClick={function() { setShowAllScores(!showAllScores); }}
                     className="text-xs text-brand hover:underline mt-2 w-full text-center"
                   >
-                    {showAllScores ? 'Show less ▲' : `Show all ${scores.length} scores ▼`}
+                    {showAllScores ? 'Show less ▲' : 'Show all ' + scores.length + ' scores ▼'}
                   </button>
                 )}
               </div>
@@ -274,41 +280,6 @@ export function EventCard({ event }) {
         </div>
       )}
 
-
-            {/* Double Chance */}
-            {activeTab === 'double_chance' && (
-              <div>
-                <p className="text-xs text-gray-500 mb-2 font-medium">Double Chance</p>
-                <div className="flex gap-2">
-                  {byType['double_chance']?.find(m => m.outcome === '1X') && (
-                    <OddsButton
-                      market={byType['double_chance'].find(m => m.outcome === '1X')}
-                      event={event}
-                      label="1X (Home or Draw)"
-                    />
-                  )}
-                  {byType['double_chance']?.find(m => m.outcome === 'X2') && (
-                    <OddsButton
-                      market={byType['double_chance'].find(m => m.outcome === 'X2')}
-                      event={event}
-                      label="X2 (Draw or Away)"
-                    />
-                  )}
-                  {byType['double_chance']?.find(m => m.outcome === '12') && (
-                    <OddsButton
-                      market={byType['double_chance'].find(m => m.outcome === '12')}
-                      event={event}
-                      label="12 (Home or Away)"
-                    />
-                  )}
-                </div>
-                <div className="mt-2 bg-dark-surface rounded-lg p-2">
-                  <p className="text-xs text-gray-600">Double Chance covers 2 of 3 possible match outcomes. Lower odds, higher chance of winning.</p>
-                </div>
-              </div>
-            )}
-
-      {/* No markets fallback */}
       {availableTabs.length === 0 && (
         <div className="px-4 pb-3">
           <p className="text-xs text-gray-600 text-center py-2">Odds loading...</p>
@@ -319,7 +290,6 @@ export function EventCard({ event }) {
   );
 }
 
-// ── BetSlip ───────────────────────────────────────────────────────────────────
 const QUICK = [500, 1000, 2000, 5000, 10000];
 
 export function BetSlip() {
@@ -334,9 +304,9 @@ export function BetSlip() {
   const [loading, setLoading] = useState(false);
   const [placed, setPlaced] = useState(null);
 
-  const totalOdds = getTotalOdds();
-  const potWin    = getPotentialWin();
-  const betType   = selections.length === 1 ? 'Single' : `Accumulator (${selections.length} legs)`;
+  var totalOdds = getTotalOdds();
+  var potWin    = getPotentialWin();
+  var betType   = selections.length === 1 ? 'Single' : 'Accumulator (' + selections.length + ' legs)';
 
   async function placeBet() {
     if (!isAuthenticated) return router.push('/login');
@@ -344,14 +314,14 @@ export function BetSlip() {
     if (parseFloat(stake) > available) return toast.error('Insufficient balance');
     setLoading(true);
     try {
-      const res = await bettingAPI.placeBet({
-        selections: selections.map(s => ({ market_id: s.market_id, selection: s.selection })),
+      var res = await bettingAPI.placeBet({
+        selections: selections.map(function(s) { return { market_id: s.market_id, selection: s.selection }; }),
         stake:      parseFloat(stake),
         use_bonus:  useBonus,
       });
       setPlaced(res.data.ticket);
       clearSlip();
-      walletAPI.getBalance().then(r => setWallet(r.data));
+      walletAPI.getBalance().then(function(r) { setWallet(r.data); });
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -368,22 +338,13 @@ export function BetSlip() {
         <h3 className="text-white font-bold text-lg mb-1">Bet Placed!</h3>
         <p className="text-gray-500 text-sm mb-5">Good luck! 🤞</p>
         <div className="bg-dark-surface rounded-xl p-4 text-left space-y-2.5 mb-5">
-          {[
-            ['Ticket',        placed.ticket_code,                          'font-mono text-brand font-bold'],
-            ['Stake',         fmt.mwk(placed.stake),                       'text-white'],
-            ['Odds',          fmt.odds(placed.total_odds),                  'text-yellow-400 font-bold'],
-            ['Potential Win', fmt.mwk((placed.potential_win || 0) * 0.8), 'text-brand font-bold'],
-          ].map(([label, val, cls]) => (
-            <div key={label as string} className="flex justify-between text-sm">
-              <span className="text-gray-500">{label}</span>
-              <span className={cls as string}>{val}</span>
-            </div>
-          ))}
+          <div className="flex justify-between text-sm"><span className="text-gray-500">Ticket</span><span className="font-mono text-brand font-bold">{placed.ticket_code}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-gray-500">Stake</span><span className="text-white">{fmt.mwk(placed.stake)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-gray-500">Odds</span><span className="text-yellow-400 font-bold">{fmt.odds(placed.total_odds)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-gray-500">Potential Win</span><span className="text-brand font-bold">{fmt.mwk((placed.potential_win || 0) * 0.8)}</span></div>
         </div>
-        <button onClick={() => setPlaced(null)} className="btn-primary w-full mb-3">Place Another Bet</button>
-        <Link href="/tickets" className="text-sm text-gray-500 hover:text-white transition-colors block">
-          View My Tickets →
-        </Link>
+        <button onClick={function() { setPlaced(null); }} className="btn-primary w-full mb-3">Place Another Bet</button>
+        <Link href="/tickets" className="text-sm text-gray-500 hover:text-white transition-colors block">View My Tickets →</Link>
       </div>
     );
   }
@@ -400,13 +361,10 @@ export function BetSlip() {
 
   return (
     <div className="card animate-slide-up">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-dark-border">
         <div className="flex items-center gap-2">
           <span className="text-white font-bold text-sm">Bet Slip</span>
-          <span className="bg-brand text-black text-xs font-black w-5 h-5 rounded-full flex items-center justify-center">
-            {selections.length}
-          </span>
+          <span className="bg-brand text-black text-xs font-black w-5 h-5 rounded-full flex items-center justify-center">{selections.length}</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">{betType}</span>
@@ -414,27 +372,24 @@ export function BetSlip() {
         </div>
       </div>
 
-      {/* Selections */}
       <div className="p-3 space-y-2 max-h-56 overflow-y-auto">
-        {selections.map(sel => (
-          <div key={sel.market_id} className="bg-dark-surface rounded-lg p-3 flex items-start gap-2">
-            <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-semibold truncate">{sel.selection}</p>
-              <p className="text-gray-500 text-xs truncate">{sel.event_label}</p>
-              <p className="text-gray-600 text-xs capitalize">{sel.market_type?.replace('_', ' ')}</p>
+        {selections.map(function(sel) {
+          return (
+            <div key={sel.market_id} className="bg-dark-surface rounded-lg p-3 flex items-start gap-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-xs font-semibold truncate">{sel.selection}</p>
+                <p className="text-gray-500 text-xs truncate">{sel.event_label}</p>
+                <p className="text-gray-600 text-xs capitalize">{sel.market_type ? sel.market_type.replace('_', ' ') : ''}</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-brand font-bold text-sm">{fmt.odds(sel.odds)}</span>
+                <button onClick={function() { removeSelection(sel.market_id); }} className="text-gray-600 hover:text-red-400 transition-colors text-xl leading-none">×</button>
+              </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-brand font-bold text-sm">{fmt.odds(sel.odds)}</span>
-              <button
-                onClick={() => removeSelection(sel.market_id)}
-                className="text-gray-600 hover:text-red-400 transition-colors text-xl leading-none"
-              >×</button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Total odds for accas */}
       {selections.length > 1 && (
         <div className="px-4 pb-2 flex items-center justify-between text-xs">
           <span className="text-gray-500">Total odds</span>
@@ -442,7 +397,6 @@ export function BetSlip() {
         </div>
       )}
 
-      {/* Stake input */}
       <div className="px-4 pb-3 border-t border-dark-border pt-3 space-y-3">
         <div>
           <label className="input-label">Stake (MWK)</label>
@@ -451,22 +405,21 @@ export function BetSlip() {
             <input
               type="number"
               value={stake}
-              onChange={e => setStake(e.target.value)}
+              onChange={function(e) { setStake(e.target.value); }}
               placeholder="0.00"
               min="50"
               className="input pl-14 text-right font-bold"
             />
           </div>
           <div className="flex gap-1.5 mt-2 flex-wrap">
-            {QUICK.map(a => (
-              <button
-                key={a}
-                onClick={() => setStake(a.toString())}
-                className="text-xs px-2 py-1 bg-dark-surface border border-dark-border rounded-md hover:border-brand hover:text-brand text-gray-500 transition-all"
-              >
-                {a >= 1000 ? `${a / 1000}K` : a}
-              </button>
-            ))}
+            {QUICK.map(function(a) {
+              return (
+                <button key={a} onClick={function() { setStake(a.toString()); }}
+                  className="text-xs px-2 py-1 bg-dark-surface border border-dark-border rounded-md hover:border-brand hover:text-brand text-gray-500 transition-all">
+                  {a >= 1000 ? (a / 1000) + 'K' : a}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -479,26 +432,15 @@ export function BetSlip() {
 
         {isAuthenticated && bonusBalance > 0 && (
           <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={useBonus}
-              onChange={e => setUseBonus(e.target.checked)}
-              className="w-4 h-4 accent-brand"
-            />
+            <input type="checkbox" checked={useBonus} onChange={function(e) { setUseBonus(e.target.checked); }} className="w-4 h-4 accent-brand" />
             <span className="text-xs text-gray-400">Use bonus ({fmt.mwk(bonusBalance)})</span>
           </label>
         )}
 
         {stake && parseFloat(stake) >= 50 && (
           <div className="bg-dark-surface rounded-xl p-3 space-y-1.5">
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-500">Stake</span>
-              <span className="text-white">{fmt.mwk(stake)}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-500">Odds</span>
-              <span className="text-yellow-400 font-bold">{fmt.odds(totalOdds)}</span>
-            </div>
+            <div className="flex justify-between text-xs"><span className="text-gray-500">Stake</span><span className="text-white">{fmt.mwk(stake)}</span></div>
+            <div className="flex justify-between text-xs"><span className="text-gray-500">Odds</span><span className="text-yellow-400 font-bold">{fmt.odds(totalOdds)}</span></div>
             <div className="flex justify-between text-sm border-t border-dark-border pt-1.5">
               <span className="text-gray-400 font-medium">Potential Win</span>
               <span className="text-brand font-bold">{fmt.mwk(potWin)}</span>
@@ -508,20 +450,14 @@ export function BetSlip() {
         )}
       </div>
 
-      {/* Place button */}
       <div className="p-4 pt-0">
-        <button
-          onClick={placeBet}
-          disabled={loading || !stake || parseFloat(stake) < 50}
-          className="btn-primary w-full text-sm py-3"
-        >
-          {loading ? (
-            <><Spinner size="sm" /><span className="ml-2">Placing...</span></>
-          ) : isAuthenticated ? (
-            `Place Bet — ${fmt.mwk(stake || 0)}`
-          ) : (
-            'Login to Bet'
-          )}
+        <button onClick={placeBet} disabled={loading || !stake || parseFloat(stake) < 50} className="btn-primary w-full text-sm py-3">
+          {loading
+            ? <span className="flex items-center justify-center gap-2"><Spinner size="sm" /><span>Placing...</span></span>
+            : isAuthenticated
+              ? 'Place Bet — ' + fmt.mwk(stake || 0)
+              : 'Login to Bet'
+          }
         </button>
         <p className="text-center text-xs text-gray-700 mt-2">18+ · Bet Responsibly</p>
       </div>
