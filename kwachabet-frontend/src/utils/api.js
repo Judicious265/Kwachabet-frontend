@@ -30,19 +30,26 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  initiateRegister: (d) => api.post('/auth/register/initiate', d),
-  verifyRegister:   (d) => api.post('/auth/register/verify', d),
+  // Registration — single step, phone + PIN, no OTP
+  initiateRegister: (d) => api.post('/auth/register', d),
+
+  // Login — phone + PIN
   login:            (d) => api.post('/auth/login', d),
+
+  // PIN management
   setPin:           (d) => api.post('/auth/pin/set', d),
   verifyPin:        (d) => api.post('/auth/pin/verify', d),
+
+  // OTP — withdrawal only
   requestOTP:       ()  => api.post('/auth/otp/withdrawal'),
+  verifyOTP:        (d) => api.post('/auth/otp/verify', d),
 };
 
 export const walletAPI = {
-  getBalance:      ()      => api.get('/wallet/balance'),
-  getTransactions: (p)     => api.get('/wallet/transactions', { params: p }),
-  deposit:         (d)     => api.post('/wallet/deposit', d),
-  withdraw:        (d, cfg)=> api.post('/wallet/withdraw', d, cfg),
+  getBalance:      ()       => api.get('/wallet/balance'),
+  getTransactions: (p)      => api.get('/wallet/transactions', { params: p }),
+  deposit:         (d)      => api.post('/wallet/deposit', d),
+  withdraw:        (d, cfg) => api.post('/wallet/withdraw', d, cfg),
 };
 
 export const bettingAPI = {
@@ -59,18 +66,18 @@ export const oddsAPI = {
 };
 
 export const adminAPI = {
-  getDashboard:          ()      => api.get('/admin/dashboard/stats'),
-  getUsers:              (p)     => api.get('/admin/users', { params: p }),
-  suspendUser:           (id, r) => api.patch(`/admin/users/${id}/suspend`, { reason: r }),
-  unsuspendUser:         (id)    => api.patch(`/admin/users/${id}/unsuspend`),
-  getTickets:            (p)     => api.get('/admin/tickets', { params: p }),
-  getPendingWithdrawals: ()      => api.get('/admin/withdrawals/pending'),
-  approveWithdrawal:     (id)    => api.patch(`/admin/withdrawals/${id}/approve`),
-  rejectWithdrawal:      (id, r) => api.patch(`/admin/withdrawals/${id}/reject`, { reason: r }),
-  getFraudDashboard:     ()      => api.get('/admin/fraud/dashboard'),
-  resolveFraudFlag:      (id, n) => api.patch(`/admin/fraud/flags/${id}/resolve`, { notes: n }),
-  getCampaigns:          ()      => api.get('/admin/bonus/campaigns'),
-  assignFreeBet:         (d)     => api.post('/admin/bonus/free-bet', d),
+  getDashboard:          ()       => api.get('/admin/dashboard/stats'),
+  getUsers:              (p)      => api.get('/admin/users', { params: p }),
+  suspendUser:           (id, r)  => api.patch(`/admin/users/${id}/suspend`, { reason: r }),
+  unsuspendUser:         (id)     => api.patch(`/admin/users/${id}/unsuspend`),
+  getTickets:            (p)      => api.get('/admin/tickets', { params: p }),
+  getPendingWithdrawals: ()       => api.get('/admin/withdrawals/pending'),
+  approveWithdrawal:     (id)     => api.patch(`/admin/withdrawals/${id}/approve`),
+  rejectWithdrawal:      (id, r)  => api.patch(`/admin/withdrawals/${id}/reject`, { reason: r }),
+  getFraudDashboard:     ()       => api.get('/admin/fraud/dashboard'),
+  resolveFraudFlag:      (id, n)  => api.patch(`/admin/fraud/flags/${id}/resolve`, { notes: n }),
+  getCampaigns:          ()       => api.get('/admin/bonus/campaigns'),
+  assignFreeBet:         (d)      => api.post('/admin/bonus/free-bet', d),
 };
 
 export default api;
