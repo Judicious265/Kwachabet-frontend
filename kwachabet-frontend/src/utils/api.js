@@ -31,7 +31,7 @@ api.interceptors.response.use(
 
 export const authAPI = {
   // Registration — single step, phone + PIN, no OTP
-  initiateRegister: (d) => api.post('/auth/register', d),
+  initiateRegister: (d) => api.post('/auth/register/initiate', d),
 
   // Login — phone + PIN
   login:            (d) => api.post('/auth/login', d),
@@ -68,6 +68,7 @@ export const oddsAPI = {
 export const adminAPI = {
   getDashboard:          ()       => api.get('/admin/dashboard/stats'),
   getUsers:              (p)      => api.get('/admin/users', { params: p }),
+  getTransactions:       (p)      => api.get('/admin/transactions', { params: p }),
   suspendUser:           (id, r)  => api.patch(`/admin/users/${id}/suspend`, { reason: r }),
   unsuspendUser:         (id)     => api.patch(`/admin/users/${id}/unsuspend`),
   getTickets:            (p)      => api.get('/admin/tickets', { params: p }),
