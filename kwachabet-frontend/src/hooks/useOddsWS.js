@@ -14,8 +14,13 @@ export function useOddsWS() {
       ws.current = new WebSocket(WS_URL);
       ws.current.onopen    = () => { setConnected(true); clearTimeout(timer.current); };
       ws.current.onmessage = (e) => {
-        try { const d = JSON.parse(e.data); if (d.type === 'odds_update') setEvents(d.events || []); } catch {}
-      };
+  try {
+    const d = JSON.parse(e.data);
+    if (d.type === 'odds_update' && d.events && d.events.length > 0) {
+      setEvents(d.events);
+    }
+  } catch {}
+};
       ws.current.onclose = () => { setConnected(false); timer.current = setTimeout(connect, 5000); };
       ws.current.onerror = () => ws.current?.close();
     } catch {}
