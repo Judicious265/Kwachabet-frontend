@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/common/Navbar';
 import HeroSlideshow from '../components/HeroSlideshow';
 import { Footer, LiveTicker, EmptyState } from '../components/common';
+import QuickLinks from '../components/common/QuickLinks';
 import { EventCard, BetSlip } from '../components/betting';
 import { useOddsStore, useBetSlipStore } from '../store';
 import { useOddsWS } from '../hooks/useOddsWS';
