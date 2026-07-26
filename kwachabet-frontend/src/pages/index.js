@@ -43,6 +43,7 @@ export default function HomePage() {
       </Head>
       <div className="min-h-screen bg-dark">
         <Navbar />
+        <HeroSlideshow />
         <LiveTicker events={events} />
         <div className="bg-dark-surface border-b border-dark-border">
           <div className="max-w-7xl mx-auto px-4 py-8">
