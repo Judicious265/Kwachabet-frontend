@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Navbar from '../components/common/Navbar';
+import HeroSlideshow from '../components/HeroSlideshow';
 import { Footer, LiveTicker, EmptyState } from '../components/common';
 import { EventCard, BetSlip } from '../components/betting';
 import { useOddsStore, useBetSlipStore } from '../store';
