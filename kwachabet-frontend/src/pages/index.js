@@ -45,6 +45,7 @@ export default function HomePage() {
       <div className="min-h-screen bg-dark">
         <Navbar />
         <HeroSlideshow />
+        <QuickLinks />
         <LiveTicker events={events} />
          <div className="bg-dark-surface border-b border-dark-border">
           <div className="max-w-7xl mx-auto px-4 py-8">
