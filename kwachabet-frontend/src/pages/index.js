@@ -45,6 +45,17 @@ export default function HomePage() {
         <Navbar />
         <HeroSlideshow />
         <LiveTicker events={events} />
+         <div className="bg-dark-surface border-b border-dark-border">
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-black text-white mb-1">Bet Smarter. <span className="text-brand">Win More.</span></h1>
+                <p className="text-gray-400">Malawi&apos;s #1 platform · Airtel Money · TNM Mpamba · Instant payouts</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className={`w-2 h-2 rounded-full ${connected ? 'bg-brand animate-pulse' : 'bg-gray-600'}`} />
+                  <span className="text-xs text-gray-500">{connected ? 'Live odds updating' : 'Connecting...'}</span>
+                </div>
+                </div>
               <div className="flex gap-2">
                 <Link href="/register" className="btn-primary">🎁 Join — 100% Bonus</Link>
                 <Link href="/wallet?tab=deposit" className="btn-secondary hidden sm:flex">Deposit</Link>
