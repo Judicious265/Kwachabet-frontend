@@ -45,7 +45,6 @@ export default function HomePage() {
         <Navbar />
         <HeroSlideshow />
         <LiveTicker events={events} />
-    </div>
               <div className="flex gap-2">
                 <Link href="/register" className="btn-primary">🎁 Join — 100% Bonus</Link>
                 <Link href="/wallet?tab=deposit" className="btn-secondary hidden sm:flex">Deposit</Link>
