@@ -5,6 +5,7 @@ import Navbar from '../components/common/Navbar';
 import HeroSlideshow from '../components/HeroSlideshow';
 import { Footer, LiveTicker, EmptyState } from '../components/common';
 import QuickLinks from '../components/common/QuickLinks';
+import TopMatches from '../components/common/TopMatches';
 import { EventCard, BetSlip } from '../components/betting';
 import { useOddsStore, useBetSlipStore } from '../store';
 import { useOddsWS } from '../hooks/useOddsWS';
@@ -47,6 +48,7 @@ export default function HomePage() {
         <HeroSlideshow />
         <QuickLinks />
         <LiveTicker events={events} />
+        <TopMatches />
          <div className="bg-dark-surface border-b border-dark-border">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
