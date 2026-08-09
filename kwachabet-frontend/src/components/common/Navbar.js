@@ -1,292 +1,479 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useAuthStore, useBetSlipStore } from '../../store';
+import { useAuthStore, useWalletStore, useBetSlipStore } from '../../store';
+import { walletAPI } from '../../utils/api';
+import { fmt } from '../../utils/helpers';
 
 const NAV_LINKS = [
-  { href: '/',           label: 'Sports',     icon: '⚽' },
-  { href: '/live',       label: 'Live',       icon: '🔴', live: true },
-  { href: '/casino',     label: 'Casino',     icon: '🎰' },
-  { href: '/aviator',    label: 'Aviator',    icon: '✈️' },
-  { href: '/virtuals',   label: 'Virtuals',   icon: '🎮' },
-  { href: '/promotions', label: 'Promotions', icon: '🎁' },
+  { href: '/',            label: 'Sports',     icon: '⚽' },
+  { href: '/live',        label: 'Live',       icon: '🔴', live: true },
+  { href: '/casino',      label: 'Casino',     icon: '🎰' },
+  { href: '/aviator',     label: 'Aviator',    icon: '✈️' },
+  { href: '/virtuals',    label: 'Virtuals',   icon: '🎮' },
+  { href: '/promotions',  label: 'Promotions', icon: '🎁' },
+  { href: '/jackpot',     label: 'Jackpot',    icon: '💰' },
 ];
 
-// Mobile bottom nav items
-const BOTTOM_NAV = [
-  { href: '/',           label: 'Sports',   icon: '⚽' },
-  { href: '/live',       label: 'Live',     icon: '🔴', live: true },
-  { href: '/promotions', label: 'Promos',   icon: '🎁' },
-  { href: '/wallet',     label: 'Wallet',   icon: '💰', authOnly: true },
-  { href: '/login',      label: 'Account',  icon: '👤', guestOnly: true },
+const MOBILE_BOTTOM_NAV = [
+  { href: '/',           label: 'Sports',  icon: '⚽' },
+  { href: '/live',       label: 'Live',    icon: '🔴', live: true },
+  { href: '/promotions', label: 'Promos',  icon: '🎁' },
+  { href: '/jackpot',    label: 'Jackpot', icon: '💰' },
+  { href: '/profile',    label: 'Account', icon: '👤', authOnly: true },
+  { href: '/login',      label: 'Login',   icon: '👤', guestOnly: true },
 ];
 
 export default function Navbar() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { balance, setWallet } = useWalletStore();
   const { selections } = useBetSlipStore();
-  const [scrolled, setScrolled]   = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
+  const [scrolled, setScrolled]     = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchVal, setSearchVal] = useState('');
+  const [searchVal, setSearchVal]   = useState('');
+  const [notifOpen, setNotifOpen]   = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
+    if (isAuthenticated) {
+      walletAPI.getBalance().then(r => setWallet(r.data)).catch(() => {});
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 6);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => { setMenuOpen(false); }, [router.pathname]);
+  useEffect(() => {
+    setMobileOpen(false);
+    setProfileOpen(false);
+    setNotifOpen(false);
+  }, [router.pathname]);
+
+  useEffect(() => {
+    function handler(e) {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const isActive = (href) => {
+    if (href === '/') return router.pathname === '/';
+    return router.pathname.startsWith(href);
+  };
 
   return (
     <>
-      {/* ── Top Navbar ────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 transition-all duration-300"
+      {/* ── TOP NAV ─────────────────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-50 w-full transition-all duration-200"
         style={{
-          background:    scrolled ? 'rgba(10,20,12,0.98)' : '#0a140c',
-          borderBottom:  '1px solid rgba(0,200,83,0.15)',
-          backdropFilter:'blur(12px)',
-        }}>
-        <div className="px-3 md:px-6 h-14 md:h-16 flex items-center justify-between gap-2 max-w-7xl mx-auto">
+          background:    scrolled ? 'rgba(6,13,10,0.98)' : '#060D0A',
+          borderBottom:  '1px solid #1E3024',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center font-black text-black text-base md:text-lg"
-              style={{ background: '#00c853' }}>K</div>
-            <span className="text-white font-black text-lg md:text-xl">
-              Kwacha<span style={{ color: '#00c853' }}>Bet</span>
+          <Link href="/" className="flex flex-col leading-none flex-shrink-0 mr-2">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-black text-sm"
+                style={{ background: '#00E664' }}
+              >
+                KB
+              </div>
+              <span className="font-black text-white text-base tracking-tight hidden sm:block">
+                Kwacha<span style={{ color: '#00E664' }}>Bet</span>
+              </span>
+            </div>
+            <span className="hidden sm:block text-xs ml-10" style={{ color: '#4A6B56', marginTop: '-2px' }}>
+              Bet Smart. Win More.
             </span>
           </Link>
 
           {/* Desktop nav links */}
-          <div className="hidden lg:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-0.5 flex-1">
             {NAV_LINKS.map(link => {
-              const isActive = router.pathname === link.href;
+              const active = isActive(link.href);
               return (
-                <Link key={link.href} href={link.href}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all relative"
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="relative px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-150 flex items-center gap-1.5"
                   style={{
-                    color:      isActive ? '#00c853' : 'rgba(255,255,255,0.75)',
-                    background: isActive ? 'rgba(0,200,83,0.1)' : 'transparent',
-                  }}>
-                  {link.live && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+                    color:      active ? '#00E664' : '#8A9E97',
+                    background: active ? 'rgba(0,230,100,0.08)' : 'transparent',
+                  }}
+                >
+                  {link.live && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                  )}
                   {link.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full"
-                      style={{ background: '#00c853' }} />
+                  {active && (
+                    <span
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"
+                      style={{ background: '#00E664' }}
+                    />
                   )}
                 </Link>
               );
             })}
-          </div>
+          </nav>
 
           {/* Right actions */}
-          <div className="flex items-center gap-1.5 md:gap-2">
-            {/* Search — hidden on mobile to save space */}
-            <button onClick={() => setSearchOpen(!searchOpen)}
-              className="hidden md:flex w-9 h-9 rounded-lg items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+          <div className="flex items-center gap-2 ml-auto">
+
+            {/* Search */}
+            <button
+              onClick={() => setSearchOpen(s => !s)}
+              className="w-9 h-9 rounded-lg flex items-center justify-center transition-all"
+              style={{ color: '#8A9E97', background: 'transparent' }}
+              aria-label="Search"
+            >
               🔍
             </button>
 
-            {/* Promos — desktop only */}
-            <Link href="/promotions"
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
-              style={{ color: '#ffd700', background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)' }}>
-              🎁 Promos
-            </Link>
-
             {isAuthenticated && user ? (
-              <div className="flex items-center gap-1.5">
-                {/* Bet slip badge */}
+              <>
+                {/* Wallet + Deposit */}
+                <Link
+                  href="/wallet"
+                  className="hidden md:flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm font-bold transition-all"
+                  style={{ background: '#0D1911', border: '1px solid #1E3024', color: '#00E664' }}
+                >
+                  <span style={{ color: '#4A6B56', fontSize: 11 }}>MWK</span>
+                  <span>{fmt.num(balance)}</span>
+                </Link>
+                <Link
+                  href="/wallet?tab=deposit"
+                  className="hidden md:flex items-center justify-center w-9 h-9 rounded-lg text-lg font-bold text-black transition-all hover:brightness-110"
+                  style={{ background: '#00E664' }}
+                  aria-label="Deposit"
+                >
+                  +
+                </Link>
+
+                {/* Gift / Promos */}
+                <Link
+                  href="/promotions"
+                  className="w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all hidden md:flex"
+                  style={{ color: '#8A9E97' }}
+                  aria-label="Promotions"
+                >
+                  🎁
+                </Link>
+
+                {/* Notifications */}
+                <div className="relative">
+                  <button
+                    onClick={() => setNotifOpen(n => !n)}
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all relative"
+                    style={{ color: '#8A9E97' }}
+                    aria-label="Notifications"
+                  >
+                    🔔
+                    <span
+                      className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2"
+                      style={{ background: '#EF4444', borderColor: '#060D0A' }}
+                    />
+                  </button>
+                  {notifOpen && (
+                    <div
+                      className="absolute right-0 top-11 w-72 rounded-xl border py-3 z-50"
+                      style={{ background: '#0D1911', borderColor: '#1E3024' }}
+                    >
+                      <p className="px-4 pb-2 text-xs font-bold text-white border-b mb-2"
+                        style={{ borderColor: '#1E3024' }}>Notifications</p>
+                      <div className="px-4 py-6 text-center text-xs" style={{ color: '#4A6B56' }}>
+                        No new notifications
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bet slip count badge */}
                 {selections.length > 0 && (
-                  <div className="relative">
-                    <button className="w-9 h-9 rounded-lg flex items-center justify-center text-white"
-                      style={{ background: 'rgba(0,200,83,0.15)', border: '1px solid rgba(0,200,83,0.3)' }}>
-                      🎯
-                    </button>
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs font-bold flex items-center justify-center text-black"
-                      style={{ background: '#00c853' }}>{selections.length}</span>
-                  </div>
+                  <Link
+                    href="/betslip"
+                    className="relative w-9 h-9 rounded-lg flex items-center justify-center text-lg lg:hidden"
+                    style={{ background: 'rgba(0,230,100,0.12)', border: '1px solid rgba(0,230,100,0.25)' }}
+                  >
+                    🎯
+                    <span
+                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-black font-black flex items-center justify-center"
+                      style={{ background: '#00E664', fontSize: 9 }}
+                    >
+                      {selections.length}
+                    </span>
+                  </Link>
                 )}
 
-                {/* Wallet — desktop */}
-                <Link href="/wallet"
-                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold"
-                  style={{ background: 'rgba(0,200,83,0.12)', border: '1px solid rgba(0,200,83,0.25)', color: '#00c853' }}>
-                  💰 Wallet
-                </Link>
-
-                {/* Avatar with dropdown — desktop */}
-                <div className="hidden md:block relative group">
-                  <button className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-black"
-                    style={{ background: '#00c853' }}>
+                {/* Avatar / profile dropdown */}
+                <div className="relative" ref={profileRef}>
+                  <button
+                    onClick={() => setProfileOpen(p => !p)}
+                    className="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm text-black transition-all hover:brightness-110"
+                    style={{ background: '#00E664' }}
+                    aria-label="Profile"
+                  >
                     {user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
                   </button>
-                  <div className="absolute right-0 top-11 w-44 rounded-xl border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all"
-                    style={{ background: '#0f1f12', border: '1px solid rgba(0,200,83,0.2)', zIndex: 100 }}>
-                    <div className="px-3 py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-                      <p className="text-white text-xs font-semibold truncate">{user.full_name}</p>
-                      <p className="text-gray-500 text-xs font-mono">{user.phone}</p>
+                  {profileOpen && (
+                    <div
+                      className="absolute right-0 top-11 w-52 rounded-xl border z-50 overflow-hidden"
+                      style={{ background: '#0D1911', borderColor: '#1E3024' }}
+                    >
+                      <div className="px-4 py-3 border-b" style={{ borderColor: '#1E3024' }}>
+                        <p className="text-white text-xs font-bold truncate">{user.full_name}</p>
+                        <p className="text-xs font-mono mt-0.5" style={{ color: '#4A6B56' }}>{user.phone}</p>
+                        <p className="text-xs font-bold mt-1" style={{ color: '#00E664' }}>
+                          MWK {fmt.num(balance)}
+                        </p>
+                      </div>
+                      <div className="py-1">
+                        {[
+                          { href: '/wallet',    label: '💰  My Wallet' },
+                          { href: '/bets',      label: '🎯  My Bets' },
+                          { href: '/profile',   label: '👤  Profile & PIN' },
+                          { href: '/referral',  label: '🎁  Refer & Earn' },
+                        ].map(item => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="block px-4 py-2.5 text-xs transition-all hover:bg-white/5"
+                            style={{ color: '#8A9E97' }}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                        <button
+                          onClick={() => { setProfileOpen(false); logout(); }}
+                          className="w-full text-left px-4 py-2.5 text-xs border-t transition-all hover:bg-red-900/20"
+                          style={{ color: '#EF4444', borderColor: '#1E3024' }}
+                        >
+                          🚪  Sign out
+                        </button>
+                      </div>
                     </div>
-                    {[
-                      { href: '/wallet',  icon: '💰', label: 'My Wallet' },
-                      { href: '/bets',    icon: '🎯', label: 'My Bets' },
-                      { href: '/profile', icon: '👤', label: 'Profile' },
-                    ].map(item => (
-                      <Link key={item.href} href={item.href}
-                        className="flex items-center gap-2 px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-white/5 transition-all">
-                        {item.icon} {item.label}
-                      </Link>
-                    ))}
-                    <button onClick={logout}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-red-900/20 transition-all border-t"
-                      style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-                      🚪 Logout
-                    </button>
-                  </div>
+                  )}
                 </div>
-              </div>
+              </>
             ) : (
-              <div className="flex items-center gap-1.5">
-                <Link href="/login"
-                  className="hidden md:flex px-4 py-2 rounded-lg text-sm font-semibold text-white border border-white/20 hover:border-white/40 transition-all">
+              <>
+                <Link
+                  href="/login"
+                  className="hidden md:flex px-4 h-9 rounded-lg items-center text-sm font-semibold border transition-all hover:border-white/40"
+                  style={{ color: '#8A9E97', borderColor: '#1E3024' }}
+                >
                   Login
                 </Link>
-                <Link href="/register"
-                  className="px-4 py-2 rounded-lg text-sm font-bold text-black transition-all"
-                  style={{ background: '#00c853', boxShadow: '0 4px 15px rgba(0,200,83,0.3)' }}>
-                  Join Free
+                <Link
+                  href="/register"
+                  className="flex px-4 h-9 rounded-lg items-center text-sm font-bold text-black transition-all hover:brightness-110"
+                  style={{ background: '#00E664' }}
+                >
+                  Join free
                 </Link>
-              </div>
+              </>
             )}
 
             {/* Mobile hamburger */}
-            <button onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all text-lg">
-              {menuOpen ? '✕' : '☰'}
+            <button
+              onClick={() => setMobileOpen(o => !o)}
+              className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-xl transition-all"
+              style={{ color: '#8A9E97' }}
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            >
+              {mobileOpen ? '✕' : '☰'}
             </button>
           </div>
         </div>
 
-        {/* Search bar */}
+        {/* Search bar (slides down) */}
         {searchOpen && (
-          <div className="border-t px-4 py-3" style={{ borderColor: 'rgba(255,255,255,0.08)', background: '#0a140c' }}>
-            <div className="max-w-lg mx-auto relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
-              <input autoFocus value={searchVal} onChange={e => setSearchVal(e.target.value)}
-                placeholder="Search matches, teams, leagues..."
-                className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm text-white placeholder-gray-600 outline-none"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }} />
-              <button onClick={() => setSearchOpen(false)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">✕</button>
+          <div className="border-t px-4 py-2.5" style={{ borderColor: '#1E3024', background: '#060D0A' }}>
+            <div className="max-w-xl mx-auto relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base" style={{ color: '#4A6B56' }}>
+                🔍
+              </span>
+              <input
+                autoFocus
+                value={searchVal}
+                onChange={e => setSearchVal(e.target.value)}
+                placeholder="Search matches, teams, leagues…"
+                className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm outline-none text-white"
+                style={{ background: '#0D1911', border: '1px solid #1E3024' }}
+              />
+              <button
+                onClick={() => { setSearchOpen(false); setSearchVal(''); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
+                style={{ color: '#4A6B56' }}
+              >
+                ✕
+              </button>
             </div>
           </div>
         )}
 
         {/* Mobile slide-down menu */}
-        {menuOpen && (
-          <div className="lg:hidden border-t" style={{ borderColor: 'rgba(255,255,255,0.08)', background: '#0a140c' }}>
-            {/* Search on mobile */}
-            <div className="px-3 pt-3 pb-1">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
-                <input value={searchVal} onChange={e => setSearchVal(e.target.value)}
-                  placeholder="Search matches..."
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm text-white placeholder-gray-600 outline-none"
-                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }} />
+        {mobileOpen && (
+          <div className="lg:hidden border-t" style={{ borderColor: '#1E3024', background: '#060D0A' }}>
+            {/* Balance row on mobile */}
+            {isAuthenticated && (
+              <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: '#1E3024' }}>
+                <div>
+                  <p className="text-xs" style={{ color: '#4A6B56' }}>Balance</p>
+                  <p className="text-sm font-bold" style={{ color: '#00E664' }}>MWK {fmt.num(balance)}</p>
+                </div>
+                <Link
+                  href="/wallet?tab=deposit"
+                  className="px-4 py-2 rounded-lg text-sm font-bold text-black"
+                  style={{ background: '#00E664' }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  + Deposit
+                </Link>
               </div>
-            </div>
-            <div className="px-3 py-2 grid grid-cols-2 gap-1.5">
+            )}
+            {/* Nav links 2-column grid */}
+            <div className="grid grid-cols-2 gap-1.5 p-3">
               {NAV_LINKS.map(link => {
-                const isActive = router.pathname === link.href;
+                const active = isActive(link.href);
                 return (
-                  <Link key={link.href} href={link.href}
-                    className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-semibold transition-all"
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-semibold border transition-all"
                     style={{
-                      color:      isActive ? '#00c853' : 'rgba(255,255,255,0.8)',
-                      background: isActive ? 'rgba(0,200,83,0.1)' : 'rgba(255,255,255,0.04)',
-                      border:     isActive ? '1px solid rgba(0,200,83,0.3)' : '1px solid rgba(255,255,255,0.06)',
-                    }}>
-                    <span className="text-base">{link.icon}</span>
+                      color:       active ? '#00E664' : '#8A9E97',
+                      background:  active ? 'rgba(0,230,100,0.08)' : 'rgba(255,255,255,0.03)',
+                      borderColor: active ? 'rgba(0,230,100,0.3)' : '#1E3024',
+                    }}
+                  >
+                    <span>{link.icon}</span>
                     <span>{link.label}</span>
                     {link.live && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
                   </Link>
                 );
               })}
             </div>
-            {isAuthenticated ? (
+            {/* Auth buttons */}
+            {!isAuthenticated && (
               <div className="px-3 pb-3 flex gap-2">
-                <Link href="/wallet"
-                  className="flex-1 py-3 rounded-xl text-sm font-bold text-center"
-                  style={{ background: 'rgba(0,200,83,0.12)', border: '1px solid rgba(0,200,83,0.3)', color: '#00c853' }}>
-                  💰 My Wallet
-                </Link>
-                <button onClick={logout}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold text-center text-red-400"
-                  style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  🚪 Logout
-                </button>
-              </div>
-            ) : (
-              <div className="px-3 pb-3 flex gap-2">
-                <Link href="/login"
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold text-center text-white"
-                  style={{ border: '1px solid rgba(255,255,255,0.2)' }}>
+                <Link
+                  href="/login"
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold text-center border text-white"
+                  style={{ borderColor: '#1E3024' }}
+                  onClick={() => setMobileOpen(false)}
+                >
                   Login
                 </Link>
-                <Link href="/register"
+                <Link
+                  href="/register"
                   className="flex-1 py-3 rounded-xl text-sm font-bold text-center text-black"
-                  style={{ background: '#00c853' }}>
-                  Join Free
+                  style={{ background: '#00E664' }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Join free
                 </Link>
+              </div>
+            )}
+            {isAuthenticated && (
+              <div className="px-3 pb-3">
+                <button
+                  onClick={() => { logout(); setMobileOpen(false); }}
+                  className="w-full py-3 rounded-xl text-sm font-semibold text-center border"
+                  style={{ color: '#EF4444', borderColor: '#1E3024' }}
+                >
+                  🚪 Sign out
+                </button>
               </div>
             )}
           </div>
         )}
-      </nav>
+      </header>
 
-      {/* ── Mobile Bottom Navigation ───────────────────────────────────────── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t"
-        style={{ background: 'rgba(10,20,12,0.98)', borderColor: 'rgba(0,200,83,0.15)', backdropFilter: 'blur(12px)' }}>
-        <div className="flex items-center justify-around px-2 py-1.5">
-          {BOTTOM_NAV.map(item => {
+      {/* ── MOBILE BOTTOM NAV ──────────────────────────────────────────── */}
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t"
+        style={{ background: 'rgba(6,13,10,0.98)', borderColor: '#1E3024', backdropFilter: 'blur(16px)' }}
+      >
+        <div className="flex items-center justify-around px-1 py-1">
+          {MOBILE_BOTTOM_NAV.map(item => {
             if (item.authOnly && !isAuthenticated) return null;
-            if (item.guestOnly && isAuthenticated) return null;
-            const isActive = router.pathname === item.href;
+            if (item.guestOnly && isAuthenticated)  return null;
+            const active = isActive(item.href);
             return (
-              <Link key={item.href} href={item.href}
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all relative"
-                style={{ minWidth: '52px' }}>
-                <span className={`text-xl relative ${isActive ? 'scale-110' : 'opacity-60'} transition-all`}>
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all relative"
+                style={{ minWidth: 52 }}
+              >
+                <span
+                  className="text-xl transition-all"
+                  style={{ opacity: active ? 1 : 0.5, transform: active ? 'scale(1.15)' : 'scale(1)' }}
+                >
                   {item.icon}
                   {item.live && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  )}
-                  {item.label === 'Account' && isAuthenticated && user && (
-                    <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-black"
-                      style={{ background: '#00c853', fontSize: '9px' }}>
-                      {user.full_name ? user.full_name.charAt(0) : 'U'}
-                    </span>
+                    <span
+                      className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500 animate-pulse"
+                      style={{ marginTop: 2, marginRight: 2 }}
+                    />
                   )}
                 </span>
-                <span className="text-xs font-semibold transition-all"
-                  style={{ color: isActive ? '#00c853' : 'rgba(255,255,255,0.45)', fontSize: '10px' }}>
+                <span
+                  className="text-center font-semibold"
+                  style={{ fontSize: 10, color: active ? '#00E664' : 'rgba(255,255,255,0.35)' }}
+                >
                   {item.label}
                 </span>
-                {isActive && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full"
-                    style={{ background: '#00c853' }} />
+                {active && (
+                  <span
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"
+                    style={{ background: '#00E664' }}
+                  />
                 )}
               </Link>
             );
           })}
+          {/* Bet slip badge */}
+          {isAuthenticated && selections.length > 0 && (
+            <Link
+              href="/betslip"
+              className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl relative"
+              style={{ minWidth: 52 }}
+            >
+              <span className="text-xl">🎯</span>
+              <span
+                className="absolute top-0.5 right-2 w-4 h-4 rounded-full flex items-center justify-center font-black text-black"
+                style={{ background: '#00E664', fontSize: 9 }}
+              >
+                {selections.length}
+              </span>
+              <span className="text-center font-semibold" style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
+                Slip
+              </span>
+            </Link>
+          )}
         </div>
-        {/* Safe area for iPhone */}
-        <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
-      </div>
+        {/* iPhone safe area */}
+        <div style={{ height: 'env(safe-area-inset-bottom,0px)' }} />
+      </nav>
 
-      {/* Bottom nav spacer on mobile */}
-      <div className="lg:hidden" style={{ height: '60px' }} />
+      {/* Spacer so content doesn't hide behind bottom nav */}
+      <div className="lg:hidden" style={{ height: 60 }} />
     </>
   );
 }
