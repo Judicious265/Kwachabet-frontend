@@ -151,15 +151,14 @@ export default function HeroSlideshow() {
             src={s.bg_image_url}
             alt=""
             className="absolute inset-0 w-full h-full object-cover object-center"
-            style={{ filter: 'brightness(0.28) saturate(1.1)', transform: 'scale(1.04)' }}
+            style={{ filter: 'brightness(0.55) saturate(1.2)', transform: 'scale(1.04)' }}
             onLoad={() => setLoaded(l => ({ ...l, [i]: true }))}
           />
           {/* Dark gradient overlay */}
           <div
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(100deg,rgba(6,13,10,0.96) 0%,rgba(6,13,10,0.72) 55%,rgba(6,13,10,0.35) 100%)',
-            }}
+           background: 'linear-gradient(100deg,rgba(6,13,10,0.85) 0%,rgba(6,13,10,0.55) 55%,rgba(6,13,10,0.2) 100%)',}}
           />
           {/* Bottom fade */}
           <div
