@@ -10,7 +10,7 @@ const FALLBACK_SLIDES = [
     accent:        'WIN MORE.',
     sub:           'Malawi\'s Most Trusted Sports Betting Platform.',
     bg_image_url:  'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=1400&q=80&fit=crop',
-    ambassador_url: null,
+    ambassador_url: '/ambassador.png',
     cta_text:      'Join Now →',
     cta_href:      '/register',
     cta2_text:     'Explore Matches',
@@ -71,7 +71,7 @@ const FALLBACK_SLIDES = [
     accent:        'BONUS.',
     sub:           'Up to MWK 50,000 on your first deposit. New customers only.',
     bg_image_url:  'https://images.unsplash.com/photo-1551958219-acbc595b5de6?w=1400&q=80&fit=crop',
-    ambassador_url: null,
+    ambassador_url: '/ambassador.png',
     cta_text:      'Claim Bonus →',
     cta_href:      '/register',
     cta2_text:     'Terms Apply',
@@ -87,80 +87,6 @@ const FALLBACK_SLIDES = [
 ];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-
-// SVG Ambassador placeholder — stylised male figure in KB kit
-function AmbassadorSVG({ accentColor }) {
-  return (
-    <svg
-      viewBox="0 0 320 520"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-full w-auto"
-      style={{ filter: `drop-shadow(0 0 40px ${accentColor}40)` }}
-      aria-hidden="true"
-    >
-      {/* Glow base */}
-      <ellipse cx="160" cy="490" rx="100" ry="20" fill={accentColor} fillOpacity="0.15" />
-
-      {/* Legs */}
-      <rect x="118" y="340" width="34" height="140" rx="16" fill="#1a2e1a" />
-      <rect x="168" y="340" width="34" height="140" rx="16" fill="#1a2e1a" />
-      {/* Boots */}
-      <rect x="112" y="462" width="46" height="22" rx="10" fill="#111" />
-      <rect x="162" y="462" width="46" height="22" rx="10" fill="#111" />
-
-      {/* Kit body */}
-      <path d="M100 200 Q80 220 75 280 L95 285 Q105 240 120 230 L120 340 H200 L200 230 Q215 240 225 285 L245 280 Q240 220 220 200 Z"
-        fill={accentColor} />
-
-      {/* KB logo on chest */}
-      <rect x="145" y="235" width="30" height="30" rx="6" fill="#000" fillOpacity="0.4" />
-      <text x="160" y="255" textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff" fontFamily="system-ui">KB</text>
-
-      {/* Arms */}
-      <path d="M100 210 Q70 230 65 280 L85 285 Q88 250 110 235 Z" fill={accentColor} />
-      <path d="M220 210 Q250 230 255 280 L235 285 Q232 250 210 235 Z" fill={accentColor} />
-
-      {/* Hands */}
-      <ellipse cx="72" cy="284" rx="14" ry="12" fill="#8B6914" />
-      <ellipse cx="248" cy="284" rx="14" ry="12" fill="#8B6914" />
-
-      {/* Football in right hand */}
-      <circle cx="262" cy="284" r="18" fill="white" />
-      <path d="M262 266 Q270 272 268 282 Q260 290 252 284 Q250 274 258 268 Z" fill="#222" />
-      <path d="M280 278 Q278 288 270 292 Q262 290 260 282 Q268 276 278 278 Z" fill="#222" />
-
-      {/* Neck */}
-      <rect x="148" y="155" width="24" height="50" rx="10" fill="#8B6914" />
-
-      {/* Head */}
-      <ellipse cx="160" cy="130" rx="44" ry="50" fill="#8B6914" />
-
-      {/* Hair */}
-      <path d="M118 115 Q120 75 160 72 Q200 75 202 115 Q190 100 160 98 Q130 100 118 115 Z"
-        fill="#1a0a00" />
-
-      {/* Eyes */}
-      <ellipse cx="146" cy="125" rx="6" ry="7" fill="#1a0a00" />
-      <ellipse cx="174" cy="125" rx="6" ry="7" fill="#1a0a00" />
-      <ellipse cx="147" cy="123" rx="2" ry="2" fill="#fff" />
-      <ellipse cx="175" cy="123" rx="2" ry="2" fill="#fff" />
-
-      {/* Smile */}
-      <path d="M148 145 Q160 157 172 145" stroke="#5a2a00" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-
-      {/* Ear */}
-      <ellipse cx="116" cy="132" rx="8" ry="10" fill="#7a5a10" />
-      <ellipse cx="204" cy="132" rx="8" ry="10" fill="#7a5a10" />
-
-      {/* Confidence sparkles */}
-      <circle cx="290" cy="160" r="3" fill={accentColor} />
-      <circle cx="50" cy="200" r="2" fill={accentColor} fillOpacity="0.6" />
-      <circle cx="280" cy="230" r="4" fill={accentColor} fillOpacity="0.4" />
-      <circle cx="40" cy="280" r="3" fill={accentColor} fillOpacity="0.5" />
-    </svg>
-  );
-}
 
 export default function HeroSlideshow() {
   const [slides, setSlides]   = useState(FALLBACK_SLIDES);
