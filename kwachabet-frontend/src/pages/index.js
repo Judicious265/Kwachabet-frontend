@@ -2,8 +2,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Navbar from '../components/common/Navbar';
 import HeroSlideshow from '../components/HeroSlideshow';
-import QuickLinks from '../components/common/QuickLinks';
-import TopMatches from '../components/common/TopMatches';
 import { Footer, LiveTicker } from '../components/common';
 import { BetSlip } from '../components/betting';
 import { useOddsStore, useBetSlipStore } from '../store';
