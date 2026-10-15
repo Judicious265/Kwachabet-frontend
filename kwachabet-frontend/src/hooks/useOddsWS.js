@@ -1,59 +1,71 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { useOddsStore } from '../store';
 
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://kwachabet-backend.onrender.com/ws/odds';
+const MAX_RETRIES = 5;          // give up after 5 attempts if backend is down
+const BACKOFF    = [3, 6, 12, 24, 48]; // seconds between each retry
+
 export function useOddsWS() {
-  const ws       = useRef(null);
-  const timer    = useRef(null);
-  const attempts = useRef(0);
-  const { setEvents, setConnected } = useOddsStore();
-
-  const connect = useCallback(() => {
-    if (typeof window === 'undefined') return;
-
-    const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:5000/ws/odds';
-
-    // Don't reconnect if already open or connecting
-    if (ws.current && (ws.current.readyState === WebSocket.OPEN || ws.current.readyState === WebSocket.CONNECTING)) return;
-
-    try {
-      ws.current = new WebSocket(WS_URL);
-
-      ws.current.onopen = () => {
-        setConnected(true);
-        attempts.current = 0;
-        clearTimeout(timer.current);
-      };
-
-      ws.current.onmessage = (e) => {
-        try {
-          const d = JSON.parse(e.data);
-          if (d.type === 'odds_update' && d.events && d.events.length > 0) {
-            setEvents(d.events);
-          }
-        } catch {}
-      };
-
-      ws.current.onclose = () => {
-        setConnected(false);
-        // Exponential backoff — wait longer each failed attempt
-        // 5s, 10s, 20s, 40s, max 60s
-        attempts.current = Math.min(attempts.current + 1, 4);
-        const delay = Math.min(5000 * Math.pow(2, attempts.current - 1), 60000);
-        timer.current = setTimeout(connect, delay);
-      };
-
-      ws.current.onerror = () => {
-        ws.current?.close();
-      };
-    } catch {}
-  }, [setEvents, setConnected]);
+  const { setEvents } = useOddsStore();
+  const wsRef      = useRef(null);
+  const retryRef   = useRef(0);
+  const timerRef   = useRef(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    // Small delay before first connect — lets the page load first
-    timer.current = setTimeout(connect, 2000);
+    mountedRef.current = true;
+
+    function connect() {
+      if (!mountedRef.current) return;
+      if (retryRef.current >= MAX_RETRIES) {
+        // Backend is down — stop silently, don't flood console
+        return;
+      }
+
+      try {
+        const ws = new WebSocket(WS_URL);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          retryRef.current = 0; // reset on successful connect
+        };
+
+        ws.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            // Only update if we actually got events back
+            if (Array.isArray(data) && data.length > 0) setEvents(data);
+            else if (data.events && data.events.length > 0) setEvents(data.events);
+          } catch (_) {}
+        };
+
+        ws.onerror = () => {
+          // Let onclose handle reconnect — suppress error log
+        };
+
+        ws.onclose = () => {
+          if (!mountedRef.current) return;
+          const attempt = retryRef.current;
+          if (attempt >= MAX_RETRIES) return;
+          retryRef.current++;
+          const delay = (BACKOFF[attempt] || 60) * 1000;
+          timerRef.current = setTimeout(connect, delay);
+        };
+      } catch (_) {
+        // WebSocket constructor can throw in SSR
+      }
+    }
+
+    // Small initial delay so page renders first
+    timerRef.current = setTimeout(connect, 2000);
+
     return () => {
-      clearTimeout(timer.current);
-      ws.current?.close();
+      mountedRef.current = false;
+      clearTimeout(timerRef.current);
+      if (wsRef.current) {
+        wsRef.current.onclose = null; // prevent reconnect on unmount
+        wsRef.current.close();
+      }
     };
-  }, [connect]);
+  }, []);
 }
