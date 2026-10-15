@@ -2,79 +2,90 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Navbar from '../components/common/Navbar';
 import HeroSlideshow from '../components/HeroSlideshow';
-import { Footer, LiveTicker } from '../components/common';
-import { BetSlip } from '../components/betting';
-import { useOddsStore, useBetSlipStore } from '../store';
+import TodaysMatches from '../components/common/TodaysMatches';
+import MatchList from '../components/common/MatchList';
+import Footer from '../components/common/Footer';
+import { useBetSlipStore, useOddsStore } from '../store';
+import { useOddsWS } from '../hooks/useOddsWS';
 
 export default function HomePage() {
-  const { events }     = useOddsStore();
+  useOddsWS(); // connects WebSocket (with retry limit)
   const { selections } = useBetSlipStore();
 
   return (
     <>
       <Head>
         <title>KwachaBet — Malawi Sports Betting</title>
-        <meta name="description" content="Bet on football, basketball, tennis and more with Airtel Money and TNM Mpamba." />
+        <meta name="description" content="Malawi's most trusted sports betting platform. Bet on football, basketball, tennis and more with Airtel Money and TNM Mpamba." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen" style={{ background: '#0a140c' }}>
+      <div style={{ background: '#060D0A', minHeight: '100vh' }}>
+        {/* ── Navigation ── */}
         <Navbar />
 
-        {/* Hero Slideshow */}
+        {/* ── Hero Slideshow ── */}
         <HeroSlideshow />
 
-        {/* Quick Links Bar */}
-        <QuickLinks />
+        {/* ── Today's Biggest Matches (featured cards) ── */}
+        <TodaysMatches />
 
-        {/* Live Ticker */}
-        <LiveTicker events={events} />
-
-        {/* Welcome Bonus Banner */}
-        <div style={{ background: 'rgba(0,200,83,0.08)', borderBottom: '1px solid rgba(0,200,83,0.15)' }}>
-          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <p className="text-sm text-white">
-              🎁 <strong>Welcome Bonus:</strong> 100% match up to MWK 50,000 on your first deposit!
+        {/* ── Welcome Bonus Banner ── */}
+        <div style={{ background: 'rgba(0,230,100,0.06)', borderBottom: '1px solid rgba(0,230,100,0.12)' }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+            <p style={{ color: '#fff', fontSize: 14, margin: 0 }}>
+              🎁 <strong>Welcome Bonus:</strong> 100% match up to <span style={{ color: '#00E664', fontWeight: 800 }}>MWK 50,000</span> on your first deposit!
             </p>
-            <Link href="/register"
-              className="text-xs font-bold hover:underline whitespace-nowrap ml-4"
-              style={{ color: '#00c853' }}>
+            <Link href="/register" style={{ color: '#00E664', fontSize: 13, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', background: 'rgba(0,230,100,0.12)', padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(0,230,100,0.25)' }}>
               Claim Now →
             </Link>
           </div>
         </div>
 
-        {/* Main Content — Sports + BetSlip */}
-        <div className="max-w-7xl mx-auto px-3 md:px-6 py-4">
-          <div className="flex gap-5 items-start">
+        {/* ── Full Match List (Today / Tomorrow / Live / Competitions) ── */}
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 16px' }}>
+          <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', paddingTop: 8 }}>
 
-            {/* Sports section — full width on mobile, flex-1 on desktop */}
-            <div className="flex-1 min-w-0">
-              <TopMatches />
+            {/* Match list — takes full width on mobile, flex-1 on desktop */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <MatchList />
             </div>
 
-            {/* BetSlip sidebar — desktop only */}
-            <div className="hidden lg:block w-80 flex-shrink-0">
-              <div className="sticky top-20">
-                <BetSlip />
-              </div>
+            {/* BetSlip sidebar — desktop only, sticky */}
+            <div className="betslip-sidebar">
+              {/* BetSlip component would go here if imported */}
+              {/* <BetSlip /> */}
             </div>
           </div>
         </div>
 
-        {/* Mobile BetSlip sticky button */}
+        {/* ── Footer ── */}
+        <Footer />
+
+        {/* ── Mobile BetSlip sticky CTA ── */}
         {selections.length > 0 && (
-          <div className="fixed bottom-20 left-3 right-3 lg:hidden z-40">
-            <Link href="/betslip"
-              className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl text-base font-bold text-black"
-              style={{ background: '#00c853', boxShadow: '0 8px 32px rgba(0,200,83,0.4)' }}>
+          <div style={{
+            position: 'fixed', bottom: 68, left: 12, right: 12,
+            zIndex: 40,
+          }}>
+            <Link href="/betslip" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              width: '100%', padding: '14px 0', borderRadius: 16,
+              fontSize: 15, fontWeight: 700, color: '#000', textDecoration: 'none',
+              background: '#00E664', boxShadow: '0 8px 32px rgba(0,230,100,0.45)',
+            }}>
               🎯 Bet Slip ({selections.length}) — Place Bet →
             </Link>
           </div>
         )}
-
-        <Footer />
       </div>
+
+      <style>{`
+        .betslip-sidebar { display: none; width: 300px; flex-shrink: 0; }
+        @media(min-width:1280px){ .betslip-sidebar { display: block; position: sticky; top: 72px; } }
+        ::-webkit-scrollbar { display: none; }
+      `}</style>
     </>
   );
 }
