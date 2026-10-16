@@ -96,11 +96,14 @@ const MOCK = {
 };
 
 // ── Odds Button ──────────────────────────────────────────────────────────────
-function OddsBtn({ matchId, sport, label, oddsVal, market }) {
+function OddsBtn({ match, sport, label, oddsVal, market }) {
   const { selections, addSelection, removeSelection } = useBetSlipStore();
-  const key      = `${matchId}-${market}`;
+  const key      = `${match.id}-${market}`;
   const isActive = selections.some(s => (s.id || s.market_id) === key);
   const atLimit  = !isActive && selections.length >= MAX_SELS;
+
+  // Human-readable pick label: team name for 1/2, "Draw" for X
+  const pickLabel = label === '1' ? match.home : label === '2' ? match.away : 'Draw';
 
   function toggle() {
     if (atLimit) return;
@@ -110,12 +113,14 @@ function OddsBtn({ matchId, sport, label, oddsVal, market }) {
       addSelection({
         id:          key,
         market_id:   key,
-        event_id:    matchId,
+        event_id:    match.id,
         market_type: 'h2h',
-        selection:   label === '1' ? 'home' : label === '2' ? 'away' : 'draw',
+        selection:   pickLabel,
         odds:        parseFloat(oddsVal),
-        event_label: `Match ${matchId}`,
-        label:       `${label} @ ${oddsVal}`,
+        event_label: `${match.home} vs ${match.away}`,
+        home_team:   match.home,
+        away_team:   match.away,
+        label:       `${pickLabel} @ ${oddsVal}`,
       });
     }
   }
@@ -242,11 +247,11 @@ function LeagueGroup({ league, sport, defaultOpen }) {
 
               {/* Odds buttons */}
               <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                <OddsBtn matchId={match.id} sport={sport} label="1" oddsVal={match.odds.home} market="home" />
+                <OddsBtn match={match} sport={sport} label="1" oddsVal={match.odds.home} market="home" />
                 {!noDrawMode && match.odds.draw && (
-                  <OddsBtn matchId={match.id} sport={sport} label="X" oddsVal={match.odds.draw} market="draw" />
+                  <OddsBtn match={match} sport={sport} label="X" oddsVal={match.odds.draw} market="draw" />
                 )}
-                <OddsBtn matchId={match.id} sport={sport} label="2" oddsVal={match.odds.away} market="away" />
+                <OddsBtn match={match} sport={sport} label="2" oddsVal={match.odds.away} market="away" />
               </div>
 
               {/* More markets — hidden on mobile */}

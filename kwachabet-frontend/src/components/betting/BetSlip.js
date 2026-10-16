@@ -135,17 +135,18 @@ export default function BetSlip() {
             </span>
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ color: '#fff', fontSize: 12, fontWeight: 700, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {/* Pick — team name or "Draw" in green */}
+              <p style={{ color: '#00E664', fontSize: 13, fontWeight: 700, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {sel.selection}
               </p>
-              <p style={{ color: '#888', fontSize: 11, margin: '2px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {sel.event_label || sel.label || `${sel.home_team || ''} vs ${sel.away_team || ''}`}
+              {/* Match context — "Man United vs Liverpool" */}
+              <p style={{ color: '#ccc', fontSize: 11, margin: '2px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {sel.event_label || (sel.home_team ? `${sel.home_team} vs ${sel.away_team}` : sel.label)}
               </p>
-              {sel.market_type && (
-                <p style={{ color: '#555', fontSize: 10, margin: '2px 0 0', textTransform: 'capitalize' }}>
-                  {sel.market_type.replace(/_/g, ' ')}
-                </p>
-              )}
+              {/* Market label */}
+              <p style={{ color: '#555', fontSize: 10, margin: '2px 0 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {sel.market_type ? sel.market_type.replace(/_/g, ' ') : 'Match Result'}
+              </p>
             </div>
             {/* Odds + remove */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
