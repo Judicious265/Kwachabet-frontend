@@ -4,12 +4,13 @@ import Navbar from '../components/common/Navbar';
 import HeroSlideshow from '../components/HeroSlideshow';
 import TodaysMatches from '../components/common/TodaysMatches';
 import MatchList from '../components/common/MatchList';
+import BetSlip from '../components/betting/BetSlip';
 import Footer from '../components/common/Footer';
-import { useBetSlipStore, useOddsStore } from '../store';
+import { useBetSlipStore } from '../store';
 import { useOddsWS } from '../hooks/useOddsWS';
 
 export default function HomePage() {
-  useOddsWS(); // connects WebSocket (with retry limit)
+  useOddsWS();
   const { selections } = useBetSlipStore();
 
   return (
@@ -22,16 +23,11 @@ export default function HomePage() {
       </Head>
 
       <div style={{ background: '#060D0A', minHeight: '100vh' }}>
-        {/* ── Navigation ── */}
         <Navbar />
-
-        {/* ── Hero Slideshow ── */}
         <HeroSlideshow />
-
-        {/* ── Today's Biggest Matches (featured cards) ── */}
         <TodaysMatches />
 
-        {/* ── Welcome Bonus Banner ── */}
+        {/* Welcome Bonus Banner */}
         <div style={{ background: 'rgba(0,230,100,0.06)', borderBottom: '1px solid rgba(0,230,100,0.12)' }}>
           <div style={{ maxWidth: 1280, margin: '0 auto', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <p style={{ color: '#fff', fontSize: 14, margin: 0 }}>
@@ -43,47 +39,54 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ── Full Match List (Today / Tomorrow / Live / Competitions) ── */}
+        {/* Main layout: match list + sidebar bet slip */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 16px' }}>
-          <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', paddingTop: 8 }}>
-
-            {/* Match list — takes full width on mobile, flex-1 on desktop */}
+          <div className="main-layout">
             <div style={{ flex: 1, minWidth: 0 }}>
               <MatchList />
             </div>
-
-            {/* BetSlip sidebar — desktop only, sticky */}
-            <div className="betslip-sidebar">
-              {/* BetSlip component would go here if imported */}
-              {/* <BetSlip /> */}
+            <div className="betslip-col">
+              <div style={{ position: 'sticky', top: 72 }}>
+                <BetSlip />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── Footer ── */}
         <Footer />
 
-        {/* ── Mobile BetSlip sticky CTA ── */}
+        {/* Mobile floating bet slip CTA */}
         {selections.length > 0 && (
-          <div style={{
-            position: 'fixed', bottom: 68, left: 12, right: 12,
-            zIndex: 40,
-          }}>
+          <div style={{ position: 'fixed', bottom: 68, left: 12, right: 12, zIndex: 40 }}>
             <Link href="/betslip" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              width: '100%', padding: '14px 0', borderRadius: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', padding: '14px 20px', borderRadius: 16,
               fontSize: 15, fontWeight: 700, color: '#000', textDecoration: 'none',
               background: '#00E664', boxShadow: '0 8px 32px rgba(0,230,100,0.45)',
+              boxSizing: 'border-box',
             }}>
-              🎯 Bet Slip ({selections.length}) — Place Bet →
+              <span>🎯 Bet Slip ({selections.length})</span>
+              <span>Place Bet →</span>
             </Link>
           </div>
         )}
       </div>
 
       <style>{`
-        .betslip-sidebar { display: none; width: 300px; flex-shrink: 0; }
-        @media(min-width:1280px){ .betslip-sidebar { display: block; position: sticky; top: 72px; } }
+        .main-layout {
+          display: flex;
+          gap: 20px;
+          align-items: flex-start;
+          padding-top: 8px;
+        }
+        .betslip-col {
+          display: none;
+          width: 300px;
+          flex-shrink: 0;
+        }
+        @media (min-width: 1280px) {
+          .betslip-col { display: block; }
+        }
         ::-webkit-scrollbar { display: none; }
       `}</style>
     </>
