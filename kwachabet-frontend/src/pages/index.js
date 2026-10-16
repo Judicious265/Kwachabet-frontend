@@ -6,12 +6,17 @@ import TodaysMatches from '../components/common/TodaysMatches';
 import MatchList from '../components/common/MatchList';
 import BetSlip from '../components/betting/BetSlip';
 import Footer from '../components/common/Footer';
-import { useBetSlipStore } from '../store';
+import { useBetSlipStore, useAuthStore, useWalletStore } from '../store';
 import { useOddsWS } from '../hooks/useOddsWS';
 
 export default function HomePage() {
   useOddsWS();
-  const { selections } = useBetSlipStore();
+  const { selections }       = useBetSlipStore();
+  const { isAuthenticated }  = useAuthStore();
+  const { balance }          = useWalletStore();
+
+  // Hide welcome banner once user has deposited (balance > 0) or is logged in with funds
+  const showWelcomeBanner = !isAuthenticated || balance === 0;
 
   return (
     <>
@@ -27,8 +32,8 @@ export default function HomePage() {
         <HeroSlideshow />
         <TodaysMatches />
 
-        {/* Welcome Bonus Banner */}
-        <div style={{
+        {/* Welcome Bonus Banner — guests only, hidden after first deposit */}
+        {showWelcomeBanner && <div style={{
           margin: '0 16px 4px',
           maxWidth: 1280,
           marginLeft: 'auto',
@@ -97,7 +102,7 @@ export default function HomePage() {
               <p style={{ color: '#555', fontSize: 11, margin: 0 }}>New customers only. T&amp;Cs apply.</p>
             </div>
           </div>
-        </div>
+        </div>}
 
         {/* Main layout: match list + sidebar bet slip */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 16px' }}>
